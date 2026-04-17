@@ -1,5 +1,7 @@
 # Citgo AppearanceV2
 
+https://any.coop/A7o2mz4pV3YKNB62EUDwKKFD3Sc9KgDUEM7CnHWz29LS8rNW/citgo-appearance-v2-documentation-and-integration-guide <<< DETAILED DCOUMENTATION
+
 A modern, full-featured character appearance editor for FiveM (QBCore). Built with a sleek glassmorphic React UI and photo-realistic clothing thumbnails powered by uz_AutoShot.
 
 ![FiveM](https://img.shields.io/badge/FiveM-Cerulean-orange)
@@ -141,6 +143,8 @@ exports['citgo_AppearanceV2']:openShop('barber')
 exports['citgo_AppearanceV2']:openShop('clothing')
 exports['citgo_AppearanceV2']:openShop('surgeon')
 exports['citgo_AppearanceV2']:openShop('tattoo')
+exports['citgo_AppearanceV2']:openShop('tattoo')
+exports['citgo_AppearanceV2']:openCharacterCreation()
 ```
 
 ---
