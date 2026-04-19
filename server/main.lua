@@ -33,9 +33,20 @@ end)
 
 -- ── Commands (server-side to avoid production mode restrictions) ────────────
 
-RegisterCommand(Config.Command, function(source)
-    TriggerClientEvent('citgo_appearance:openEditor', source)
-end, false)
+RegisterCommand(Config.Command, function(source, args)
+    local targetId = tonumber(args[1])
+    if targetId then
+        local target = GetPlayerName(targetId)
+        if not target then
+            TriggerClientEvent('QBCore:Notify', source, 'Player not found', 'error', 3000)
+            return
+        end
+        TriggerClientEvent('citgo_appearance:openEditor', targetId)
+        TriggerClientEvent('QBCore:Notify', source, 'Opened appearance menu for player ' .. targetId, 'success', 3000)
+    else
+        TriggerClientEvent('citgo_appearance:openEditor', source)
+    end
+end, true)
 
 RegisterCommand('starteroutfits', function(source)
     TriggerClientEvent('citgo_appearance:openStarterOutfitAdmin', source)
