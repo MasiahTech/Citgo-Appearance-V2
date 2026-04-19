@@ -45,6 +45,8 @@ export default function App() {
   const [localState, setLocalState] = useState({
     components: {}, props: {}, hair: {}, headBlend: {}, headOverlays: {}, eyeColor: 0,
   })
+  // Visual-only hide state — tracks which slots are temporarily hidden on the ped
+  const [hiddenSlots, setHiddenSlots] = useState({})
   // Ref so outfit-save callbacks always see the latest state without stale closures
   const localStateRef = useRef(localState)
   useEffect(() => { localStateRef.current = localState }, [localState])
@@ -92,6 +94,7 @@ export default function App() {
         setOutfits([])
         setJobOutfits([])
         setOutfitError(null)
+        setHiddenSlots({})
         setVisible(true)
 
         // Fetch tattoo data if tattoo shop
@@ -196,6 +199,9 @@ export default function App() {
     return () => window.removeEventListener('message', handler)
   }, [])
 
+  // ── Hide drawables per component (bare/nude defaults) ───────────────────
+  const HIDE_DRAWABLES = { 3: 15, 4: 15, 6: 15, 8: 15, 11: 15 }
+
   // ── Clothing / prop change handlers ──────────────────────────────────────
 
   const handleComponentChange = useCallback((id, drawable, texture) => {
@@ -203,6 +209,12 @@ export default function App() {
       ...prev,
       components: { ...prev.components, [id]: { drawable, texture } },
     }))
+    setHiddenSlots(prev => {
+      if (!prev[`comp_${id}`]) return prev
+      const next = { ...prev }
+      delete next[`comp_${id}`]
+      return next
+    })
     fetchNUI('applyComponent', { id, drawable, texture })
   }, [])
 
@@ -211,6 +223,12 @@ export default function App() {
       ...prev,
       props: { ...prev.props, [id]: { drawable, texture } },
     }))
+    setHiddenSlots(prev => {
+      if (!prev[`prop_${id}`]) return prev
+      const next = { ...prev }
+      delete next[`prop_${id}`]
+      return next
+    })
     fetchNUI('applyProp', { id, drawable, texture })
   }, [])
 
@@ -219,7 +237,43 @@ export default function App() {
       ...prev,
       props: { ...prev.props, [id]: { drawable: -1, texture: 0 } },
     }))
+    setHiddenSlots(prev => {
+      if (!prev[`prop_${id}`]) return prev
+      const next = { ...prev }
+      delete next[`prop_${id}`]
+      return next
+    })
     fetchNUI('applyProp', { id, drawable: -1, texture: 0 })
+  }, [])
+
+  const handleHideToggle = useCallback((slotType, id) => {
+    const key = `${slotType}_${id}`
+    setHiddenSlots(prev => {
+      const isHidden = !!prev[key]
+      if (isHidden) {
+        // Unhide: restore the real selected drawable
+        const current = slotType === 'comp'
+          ? localStateRef.current.components[id] ?? { drawable: 0, texture: 0 }
+          : localStateRef.current.props[id] ?? { drawable: -1, texture: 0 }
+        if (slotType === 'comp') {
+          fetchNUI('applyComponent', { id, drawable: current.drawable, texture: current.texture })
+        } else {
+          fetchNUI('applyProp', { id, drawable: current.drawable, texture: current.texture })
+        }
+        const next = { ...prev }
+        delete next[key]
+        return next
+      } else {
+        // Hide: set ped to hide drawable without changing state
+        if (slotType === 'comp') {
+          const hideDrawable = HIDE_DRAWABLES[id] ?? 0
+          fetchNUI('applyComponent', { id, drawable: hideDrawable, texture: 0 })
+        } else {
+          fetchNUI('applyProp', { id, drawable: -1, texture: 0 })
+        }
+        return { ...prev, [key]: true }
+      }
+    })
   }, [])
 
   const handleHairChange = useCallback((field, value) => {
@@ -439,9 +493,11 @@ export default function App() {
         jobName={jobName}
         jobLabel={jobLabel}
         tattooZones={tattooZones}
+        hiddenSlots={hiddenSlots}
         onComponentChange={handleComponentChange}
         onPropChange={handlePropChange}
         onPropRemove={handlePropRemove}
+        onHideToggle={handleHideToggle}
         onHairChange={handleHairChange}
         onBlendChange={handleBlendChange}
         onOverlayChange={handleOverlayChange}

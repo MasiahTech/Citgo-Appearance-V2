@@ -23,9 +23,9 @@ export function AppearanceEditor({
   outfits, jobOutfits, outfitError,
   shopType, shopLabel, shopPrice, categories,
   editorMode, starterOutfits, isBoss, jobName, jobLabel,
-  tattooZones,
+  tattooZones, hiddenSlots,
   pendingCode, codeLoading, codeError, importLoading, importError,
-  onComponentChange, onPropChange, onPropRemove,
+  onComponentChange, onPropChange, onPropRemove, onHideToggle,
   onHairChange, onBlendChange, onOverlayChange, onEyeColorChange,
   onPedModelChange, onTattooToggle,
   onCameraPreset, onConfirm, onCancel,
@@ -132,7 +132,9 @@ export function AppearanceEditor({
           slot={slot}
           gender={gender}
           current={current}
+          isHidden={!!hiddenSlots?.[`comp_${activeCategory.id}`]}
           onDrawableSelect={(d, t) => onComponentChange(activeCategory.id, d, t)}
+          onHideToggle={() => onHideToggle?.('comp', activeCategory.id)}
         />
       )
     }
@@ -148,8 +150,10 @@ export function AppearanceEditor({
           slot={slot}
           gender={gender}
           current={current}
+          isHidden={!!hiddenSlots?.[`prop_${activeCategory.id}`]}
           onDrawableSelect={(d, t) => onPropChange(activeCategory.id, d, t)}
           onRemove={() => onPropRemove(activeCategory.id)}
+          onHideToggle={() => onHideToggle?.('prop', activeCategory.id)}
         />
       )
     }

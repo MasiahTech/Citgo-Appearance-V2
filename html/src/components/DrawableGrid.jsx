@@ -36,7 +36,7 @@ function Cell({ columnIndex, rowIndex, style, data }) {
 }
 
 // ── DrawableGrid ─────────────────────────────────────────────────────────────
-export function DrawableGrid({ type, slot, gender, current, onDrawableSelect, onRemove }) {
+export function DrawableGrid({ type, slot, gender, current, isHidden, onDrawableSelect, onRemove, onHideToggle }) {
   const [search, setSearch] = useState('')
   const gridRef = useRef(null)
   const [gridSize, setGridSize] = useState({ width: 0, height: 0 })
@@ -114,22 +114,20 @@ export function DrawableGrid({ type, slot, gender, current, onDrawableSelect, on
           {filteredItems.length}
         </span>
         <button
-          onClick={() => {
-            if (type === 'prop') { onRemove?.() }
-            else { onDrawableSelect(0, 0) }
-          }}
-          title={`Hide ${slot.label}`}
+          onClick={() => onHideToggle?.()}
+          title={isHidden ? `Show ${slot.label}` : `Hide ${slot.label}`}
           className="flex items-center justify-center gap-1.5 cursor-pointer"
           style={{
             height: 28, padding: '0 10px', borderRadius: 6,
-            background: 'rgba(236,72,153,0.12)', border: '1px solid rgba(236,72,153,0.35)',
+            background: isHidden ? 'rgba(236,72,153,0.35)' : 'rgba(236,72,153,0.12)',
+            border: `1px solid rgba(236,72,153,${isHidden ? '0.6' : '0.35'})`,
             fontSize: 11, fontWeight: 600, color: '#ec4899',
             transition: 'background 0.15s',
           }}
-          onMouseOver={e => e.currentTarget.style.background = 'rgba(236,72,153,0.22)'}
-          onMouseOut={e  => e.currentTarget.style.background = 'rgba(236,72,153,0.12)'}>
+          onMouseOver={e => e.currentTarget.style.background = isHidden ? 'rgba(236,72,153,0.45)' : 'rgba(236,72,153,0.22)'}
+          onMouseOut={e  => e.currentTarget.style.background = isHidden ? 'rgba(236,72,153,0.35)' : 'rgba(236,72,153,0.12)'}>
           <EyeOff style={{ width: 12, height: 12 }} />
-          Hide
+          {isHidden ? 'Show' : 'Hide'}
         </button>
       </div>
 
