@@ -33,6 +33,7 @@ Replaces illenium-appearance — everything runs from a single resource with ful
 ### Clothing & Props
 - Visual grid browser with **real photo thumbnails** for every drawable
 - Texture variant selector per drawable
+- **Hide button** — temporarily hide any clothing piece on the ped to see what's underneath, without changing your selection
 - Search by drawable ID
 - Virtualized rendering — handles thousands of items without lag
 
@@ -54,6 +55,13 @@ Replaces illenium-appearance — everything runs from a single resource with ful
 - Share outfits via short codes — paste a code, get the look
 - Job outfits with boss management and minimum grade requirements
 - Starter outfits for character creation (admin-manageable via `/starteroutfits`)
+
+### Wardrobe
+- Outfits-only view — personal outfits, job outfits, and outfit code import
+- No clothing browsing or appearance editing — just pick an outfit and go
+- **Job-locked wardrobe locations** — place locker rooms at police stations, hospitals, etc.
+- Public wardrobes supported (set `job = nil`)
+- Accessible via export: `exports['citgo_AppearanceV2']:openWardrobe()`
 
 ### Shop System
 - Configurable shop types: Barber, Clothing Store, Plastic Surgeon, Tattoo Parlor
@@ -292,6 +300,29 @@ Config.Shops = {
 }
 ```
 
+### Wardrobe Locations
+
+Place locker rooms where players can access their outfits. Set `job` to restrict access to a specific job, or `nil` for a public wardrobe:
+
+```lua
+Config.Wardrobes = {
+    {
+        label    = 'LSPD Locker Room',
+        job      = 'police',               -- Only police can use this wardrobe (nil = public)
+        icon     = 'fas fa-shirt',          -- Icon for context menu / ox_target
+        location = vec4(461.74, -998.86, 30.69, 0.0),
+    },
+    {
+        label    = 'EMS Locker Room',
+        job      = 'ambulance',
+        icon     = 'fas fa-shirt',
+        location = vec4(311.98, -595.32, 43.29, 0.0),
+    },
+}
+```
+
+Wardrobe locations use the same interaction method as shops (core_focus, ox_target, ox_radial, or ox_textui).
+
 ### Starter Outfits
 
 Default outfits shown during character creation. Admins can manage these in-game via `/starteroutfits`:
@@ -317,13 +348,22 @@ Config.StarterOutfits = {
 ```lua
 -- Open the full appearance editor (all categories, no charge)
 -- Use this for admin menus, closets, or custom triggers
-exports['citgo_AppearanceV2']:openEditor()
+exports['citgo_AppearanceV2']:openAppearance()
 
 -- Open a specific shop type (restricted categories, charges the player)
-exports['citgo_AppearanceV2']:openShop('barber')
-exports['citgo_AppearanceV2']:openShop('clothing')
-exports['citgo_AppearanceV2']:openShop('surgeon')
-exports['citgo_AppearanceV2']:openShop('tattoo')
+exports['citgo_AppearanceV2']:openAppearance('barber')
+exports['citgo_AppearanceV2']:openAppearance('clothing')
+exports['citgo_AppearanceV2']:openAppearance('surgeon')
+exports['citgo_AppearanceV2']:openAppearance('tattoo')
+
+-- Open the wardrobe (outfits only — personal, job, and import codes)
+exports['citgo_AppearanceV2']:openWardrobe()
+
+-- Open character creation editor
+exports['citgo_AppearanceV2']:openCharacterCreation()
+
+-- Open the job outfit editor
+exports['citgo_AppearanceV2']:openJobOutfitEditor()
 ```
 
 ### Reading Appearance Data
@@ -402,6 +442,17 @@ exports['citgo_AppearanceV2']:setPlayerModel("mp_f_freemode_01")
 ```
 
 ### All Available Exports
+
+#### Editor / Wardrobe
+
+| Export | Description |
+|---|---|
+| `openAppearance(shopType?)` | Open the appearance editor. Pass a shop type to restrict categories and charge |
+| `openWardrobe()` | Open outfits-only view (personal + job outfits + import codes) |
+| `openCharacterCreation()` | Open the character creation editor |
+| `openJobOutfitEditor()` | Open the job outfit editor |
+
+#### Getters / Setters
 
 | Export | Description |
 |---|---|
