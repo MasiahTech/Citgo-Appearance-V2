@@ -490,16 +490,24 @@ RegisterNUICallback('confirm', function(data, cb)
     TriggerServerEvent('citgo_appearance:server:saveAppearance', finalAppearance)
 
     if Config.SaveToInventory and GetResourceState('core_inventory') == 'started' then
-        exports['core_inventory']:addClothingItemFromPedSkinInClothHolder(PlayerPedId(), false, true, true)
+        pcall(exports['core_inventory'].addClothingItemFromPedSkinInClothHolder,
+            exports['core_inventory'], PlayerPedId(), false, true, true)
     end
 
     closeEditor()
+
+    -- Re-apply the full appearance (including model) to ensure it sticks
+    -- after any external scripts that may reload the old skin
+    Citizen.SetTimeout(500, function()
+        AppearanceLib.setPlayerAppearance(finalAppearance)
+    end)
+
     cb('ok')
 end)
 
 RegisterNUICallback('cancel', function(_, cb)
     if originalAppearance then
-        AppearanceLib.setPedAppearance(PlayerPedId(), originalAppearance)
+        AppearanceLib.setPlayerAppearance(originalAppearance)
     end
     closeEditor()
     cb('ok')
