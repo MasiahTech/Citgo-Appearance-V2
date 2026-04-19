@@ -231,6 +231,8 @@ local function openEditor(shopType, editorMode)
         }
     elseif editorMode == 'starterOutfitAdmin' then
         categories = { 'component', 'prop', 'starterOutfits' }
+    elseif editorMode == 'wardrobe' then
+        categories = { 'outfits' }
     end
 
     -- Fetch starter outfits from server (server holds KVP-persisted data)
@@ -266,6 +268,9 @@ local function openEditor(shopType, editorMode)
     if not editorMode or editorMode == nil then
         pushOutfitsToNUI()
         pushJobOutfitsToNUI()
+    elseif editorMode == 'wardrobe' then
+        pushOutfitsToNUI()
+        pushJobOutfitsToNUI()
     elseif editorMode == 'jobOutfitEditor' then
         pushJobOutfitsToNUI()
     end
@@ -283,6 +288,10 @@ end)
 
 exports('openJobOutfitEditor', function()
     openEditor(nil, 'jobOutfitEditor')
+end)
+
+exports('openWardrobe', function()
+    openEditor(nil, 'wardrobe')
 end)
 
 -- ── Command events (triggered from server-side RegisterCommand) ─────────────
@@ -834,11 +843,163 @@ if Config.UseOxTextUI and GetResourceState('ox_lib') == 'started' then
     end)
 end
 
+-- ── Wardrobe locations ──────────────────────────────────────────────────────
+
+local WARDROBE_RADIUS = 3.0
+local activeWardrobeMenu = nil
+
+local function canAccessWardrobe(wardrobe)
+    if not wardrobe.job then return true end
+    local PlayerData = QBCore.Functions.GetPlayerData()
+    return PlayerData.job and PlayerData.job.name == wardrobe.job
+end
+
+local function getNearestWardrobe()
+    local ped    = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+    local best, bestDist = nil, WARDROBE_RADIUS
+    for i, w in ipairs(Config.Wardrobes or {}) do
+        local loc  = w.location
+        local dist = #(coords - vector3(loc.x, loc.y, loc.z))
+        if dist < bestDist and canAccessWardrobe(w) then
+            bestDist = dist
+            best     = i
+        end
+    end
+    return best
+end
+
+if not useOxInteraction then
+    CreateThread(function()
+        while true do
+            local nearest = getNearestWardrobe()
+
+            if nearest ~= activeWardrobeMenu then
+                if activeWardrobeMenu then
+                    exports['core_focus']:RemoveContextMenu('appearance_wardrobe')
+                    activeWardrobeMenu = nil
+                end
+
+                if nearest and not isOpen then
+                    local w = Config.Wardrobes[nearest]
+                    exports['core_focus']:AddContextMenu('appearance_wardrobe', {
+                        enabled = true,
+                        label   = w.label,
+                        icon    = w.icon or 'fas fa-shirt',
+                        options = {
+                            {
+                                label  = 'Open Wardrobe',
+                                icon   = w.icon or 'fas fa-shirt',
+                                action = function()
+                                    openEditor(nil, 'wardrobe')
+                                end,
+                            },
+                        },
+                    })
+                    activeWardrobeMenu = nearest
+                end
+            end
+
+            Wait(nearest and 500 or 1500)
+        end
+    end)
+end
+
+if Config.UseOxTarget and GetResourceState('ox_target') == 'started' then
+    for i, w in ipairs(Config.Wardrobes or {}) do
+        local loc = w.location
+        exports.ox_target:addSphereZone({
+            coords = vec3(loc.x, loc.y, loc.z),
+            radius = WARDROBE_RADIUS,
+            debug  = false,
+            options = {
+                {
+                    name  = 'wardrobe_' .. i,
+                    icon  = w.icon or 'fas fa-shirt',
+                    label = 'Open ' .. w.label,
+                    canInteract = function()
+                        return canAccessWardrobe(w)
+                    end,
+                    onSelect = function()
+                        openEditor(nil, 'wardrobe')
+                    end,
+                },
+            },
+        })
+    end
+end
+
+if Config.UseOxRadial and GetResourceState('ox_lib') == 'started' then
+    local wardrobeRadialActive = nil
+
+    CreateThread(function()
+        while true do
+            local nearest = getNearestWardrobe()
+
+            if nearest ~= wardrobeRadialActive then
+                if wardrobeRadialActive then
+                    lib.removeRadialItem('appearance_wardrobe')
+                    wardrobeRadialActive = nil
+                end
+
+                if nearest and not isOpen then
+                    local w = Config.Wardrobes[nearest]
+                    lib.addRadialItem({
+                        id       = 'appearance_wardrobe',
+                        icon     = w.icon or 'fas fa-shirt',
+                        label    = w.label,
+                        onSelect = function()
+                            openEditor(nil, 'wardrobe')
+                        end,
+                    })
+                    wardrobeRadialActive = nearest
+                end
+            end
+
+            Wait(nearest and 500 or 1500)
+        end
+    end)
+end
+
+if Config.UseOxTextUI and GetResourceState('ox_lib') == 'started' then
+    local wardrobeTextuiShown = nil
+
+    CreateThread(function()
+        while true do
+            local nearest = getNearestWardrobe()
+
+            if nearest ~= wardrobeTextuiShown then
+                if wardrobeTextuiShown then
+                    lib.hideTextUI()
+                    wardrobeTextuiShown = nil
+                end
+
+                if nearest and not isOpen then
+                    local w = Config.Wardrobes[nearest]
+                    lib.showTextUI('[E] ' .. w.label, {
+                        icon = w.icon or 'fas fa-shirt',
+                    })
+                    wardrobeTextuiShown = nearest
+                end
+            end
+
+            if wardrobeTextuiShown and not isOpen and IsControlJustPressed(0, 38) then
+                openEditor(nil, 'wardrobe')
+            end
+
+            Wait(wardrobeTextuiShown and 0 or 1500)
+        end
+    end)
+end
+
 -- ── Cleanup ──────────────────────────────────────────────────────────────────
 
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
     if isOpen then closeEditor() end
     if Config.UseOxTextUI then pcall(lib.hideTextUI) end
-    if Config.UseOxRadial then pcall(lib.removeRadialItem, 'appearance_shop') end
+    if Config.UseOxRadial then
+        pcall(lib.removeRadialItem, 'appearance_shop')
+        pcall(lib.removeRadialItem, 'appearance_wardrobe')
+    end
 end)

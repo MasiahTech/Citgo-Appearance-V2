@@ -123,6 +123,9 @@ export function CategorySidebar({ slots, activeCategory, onSelect, shopLabel, ca
   } else if (editorMode === 'starterOutfitAdmin') {
     headerTitle = 'Starter Outfits'
     headerSub   = 'Manage default outfits'
+  } else if (editorMode === 'wardrobe') {
+    headerTitle = 'Wardrobe'
+    headerSub   = 'Your outfits'
   }
 
   return (

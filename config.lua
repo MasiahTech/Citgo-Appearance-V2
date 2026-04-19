@@ -48,6 +48,32 @@ Config.StarterOutfits = {
     },
 }
 
+-- ── Wardrobe Locations ───────────────────────────────────────────────────────
+-- Players can access personal outfits, job outfits, and import outfit codes.
+-- Set job = nil for a public wardrobe anyone can use.
+-- Interaction uses the same method as shops (core_focus, ox_target, or ox_lib).
+
+Config.Wardrobes = {
+    {
+        label    = 'LSPD Locker Room',
+        job      = 'police',
+        icon     = 'fas fa-shirt',
+        location = vec4(461.74, -998.86, 30.69, 0.0),
+    },
+    {
+        label    = 'EMS Locker Room',
+        job      = 'ambulance',
+        icon     = 'fas fa-shirt',
+        location = vec4(311.98, -595.32, 43.29, 0.0),
+    },
+    -- {
+    --     label    = 'Public Wardrobe',
+    --     job      = nil,
+    --     icon     = 'fas fa-shirt',
+    --     location = vec4(0.0, 0.0, 0.0, 0.0),
+    -- },
+}
+
 -- ── Shop System ──────────────────────────────────────────────────────────────
 -- Each shop type defines: price, blip, allowed categories, and locations.
 -- The /appearance command opens ALL categories for free (admin/closet mode).
