@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { FixedSizeGrid as Grid } from 'react-window'
-import { Search, X, Trash2 } from 'lucide-react'
+import { Search, X, EyeOff } from 'lucide-react'
 import { Thumbnail } from './Thumbnail'
 
 const CARD_W = 106
@@ -107,19 +107,30 @@ export function DrawableGrid({ type, slot, gender, current, onDrawableSelect, on
       {/* Header */}
       <div className="flex items-center gap-2.5 shrink-0" style={{ padding: '12px 14px' }}>
         <div className="flex-1 min-w-0">
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#eee', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{slot.label}</p>
-          <p style={{ fontSize: 10, color: '#444', marginTop: 2 }}>{subtitle}</p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: '#f0f0f0', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{slot.label}</p>
+          <p style={{ fontSize: 11, color: '#666', marginTop: 3 }}>{subtitle}</p>
         </div>
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#555', background: bg(0.03), border: border(0.05), borderRadius: 4, padding: '2px 9px' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#777', background: bg(0.03), border: border(0.05), borderRadius: 4, padding: '2px 9px' }}>
           {filteredItems.length}
         </span>
-        {type === 'prop' && onRemove && (
-          <button onClick={onRemove} title="Remove prop"
-            className="flex items-center justify-center cursor-pointer"
-            style={{ width: 26, height: 26, borderRadius: 5, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
-            <Trash2 style={{ width: 10, height: 10, color: '#ef4444' }} />
-          </button>
-        )}
+        <button
+          onClick={() => {
+            if (type === 'prop') { onRemove?.() }
+            else { onDrawableSelect(0, 0) }
+          }}
+          title={`Hide ${slot.label}`}
+          className="flex items-center justify-center gap-1.5 cursor-pointer"
+          style={{
+            height: 28, padding: '0 10px', borderRadius: 6,
+            background: 'rgba(236,72,153,0.12)', border: '1px solid rgba(236,72,153,0.35)',
+            fontSize: 11, fontWeight: 600, color: '#ec4899',
+            transition: 'background 0.15s',
+          }}
+          onMouseOver={e => e.currentTarget.style.background = 'rgba(236,72,153,0.22)'}
+          onMouseOut={e  => e.currentTarget.style.background = 'rgba(236,72,153,0.12)'}>
+          <EyeOff style={{ width: 12, height: 12 }} />
+          Hide
+        </button>
       </div>
 
       <div style={{ height: 1, background: bg(0.04) }} />
@@ -127,19 +138,19 @@ export function DrawableGrid({ type, slot, gender, current, onDrawableSelect, on
       {/* Search */}
       <div style={{ padding: '7px 12px' }}>
         <div className="flex items-center gap-2" style={{ height: 30, borderRadius: 6, padding: '0 10px', background: bg(0.015), border: border(0.04) }}>
-          <Search style={{ width: 11, height: 11, color: '#444', flexShrink: 0 }} />
+          <Search style={{ width: 12, height: 12, color: '#666', flexShrink: 0 }} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by #id..."
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 11, color: '#ccc', caretColor: '#888' }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: '#ddd', caretColor: '#999' }}
           />
           {search ? (
             <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
-              <X style={{ width: 10, height: 10, color: '#555' }} />
+              <X style={{ width: 11, height: 11, color: '#777' }} />
             </button>
           ) : (
-            <span style={{ fontSize: 8, color: '#333', fontFamily: 'monospace' }}>{slot.numDrawables}</span>
+            <span style={{ fontSize: 10, color: '#555', fontFamily: 'monospace' }}>{slot.numDrawables}</span>
           )}
         </div>
       </div>
@@ -163,8 +174,8 @@ export function DrawableGrid({ type, slot, gender, current, onDrawableSelect, on
           </Grid>
         ) : (
           <div className="h-full flex flex-col items-center justify-center gap-2">
-            <Search style={{ width: 14, height: 14, color: '#2a2a2a' }} />
-            <span style={{ fontSize: 10, color: '#444' }}>No items found</span>
+            <Search style={{ width: 14, height: 14, color: '#444' }} />
+            <span style={{ fontSize: 12, color: '#666' }}>No items found</span>
           </div>
         )}
       </div>
@@ -174,14 +185,14 @@ export function DrawableGrid({ type, slot, gender, current, onDrawableSelect, on
         <>
           <div style={{ height: 1, background: bg(0.04) }} />
           <div style={{ padding: '7px 12px' }}>
-            <p style={{ fontSize: 10, color: '#555', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Texture</p>
+            <p style={{ fontSize: 11, color: '#777', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Texture</p>
             <div className="flex flex-wrap gap-1.5">
               {Array.from({ length: numTextures }, (_, t) => (
                 <button
                   key={t}
                   onClick={() => onDrawableSelect(current.drawable, t)}
                   style={{
-                    width: 30, height: 30, borderRadius: 5, fontSize: 11, fontWeight: 600,
+                    width: 32, height: 32, borderRadius: 5, fontSize: 12, fontWeight: 600,
                     cursor: 'pointer',
                     background: current.texture === t ? '#f0f0f0' : bg(0.04),
                     color:      current.texture === t ? '#000'    : '#666',
@@ -201,13 +212,13 @@ export function DrawableGrid({ type, slot, gender, current, onDrawableSelect, on
         {current.drawable >= 0 ? (
           <>
             <span style={{ width: 5, height: 5, borderRadius: '50%', flexShrink: 0, background: '#22c55e', boxShadow: '0 0 5px rgba(34,197,94,0.4)', marginRight: 8 }} />
-            <span style={{ fontSize: 11, color: '#777' }}>
-              Drawable <span style={{ color: '#ccc', fontWeight: 700 }}>#{current.drawable}</span>
-              {current.texture > 0 && <> · Texture <span style={{ color: '#ccc', fontWeight: 700 }}>#{current.texture}</span></>}
+            <span style={{ fontSize: 12, color: '#999' }}>
+              Drawable <span style={{ color: '#ddd', fontWeight: 700 }}>#{current.drawable}</span>
+              {current.texture > 0 && <> · Texture <span style={{ color: '#ddd', fontWeight: 700 }}>#{current.texture}</span></>}
             </span>
           </>
         ) : (
-          <span style={{ fontSize: 11, color: '#333' }}>No prop equipped</span>
+          <span style={{ fontSize: 12, color: '#555' }}>No prop equipped</span>
         )}
       </div>
     </div>

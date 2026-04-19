@@ -50,7 +50,7 @@ export const Thumbnail = React.memo(function Thumbnail({ item, isSelected, onCli
         overflow: 'hidden', background: 'rgba(0,0,0,0.15)',
       }}>
         {!src && !error && <div style={{ position: 'absolute', inset: 0 }} className="skeleton" />}
-        {error && <span style={{ fontSize: 8, color: '#777' }}>{label}</span>}
+        {error && <span style={{ fontSize: 10, color: '#999' }}>{label}</span>}
         {src && (
           <img
             src={src} alt="" draggable={false}
@@ -76,7 +76,7 @@ export const Thumbnail = React.memo(function Thumbnail({ item, isSelected, onCli
             parent.onmouseenter = () => el.style.opacity = '1'
             parent.onmouseleave = () => el.style.opacity = '0'
           }}>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#fff' }}>{label}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>{label}</span>
         </div>
         {/* Selected checkmark */}
         {isSelected && (
@@ -92,7 +92,7 @@ export const Thumbnail = React.memo(function Thumbnail({ item, isSelected, onCli
         {item.texture > 0 && (
           <span style={{
             position: 'absolute', top: 3, left: 3,
-            fontSize: 7, fontWeight: 700, color: '#777',
+            fontSize: 8, fontWeight: 700, color: '#999',
             background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.05)',
             borderRadius: 2, padding: '0 3px',
           }}>T{item.texture}</span>
@@ -101,13 +101,13 @@ export const Thumbnail = React.memo(function Thumbnail({ item, isSelected, onCli
 
       {/* Label bar */}
       <div style={{
-        height: 16, flexShrink: 0, display: 'flex', alignItems: 'center',
+        height: 18, flexShrink: 0, display: 'flex', alignItems: 'center',
         justifyContent: 'center', borderTop: '1px solid rgba(255,255,255,0.025)',
         background: 'rgba(0,0,0,0.2)',
       }}>
         <span style={{
-          fontSize: 7, fontWeight: isSelected ? 700 : 500,
-          color: isSelected ? '#ccc' : '#444',
+          fontSize: 9, fontWeight: isSelected ? 700 : 500,
+          color: isSelected ? '#ddd' : '#666',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{label}</span>
       </div>
