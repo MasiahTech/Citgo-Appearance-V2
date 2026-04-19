@@ -3,6 +3,8 @@ if not Config then Config = {} end
 Config.Command = 'appearance'
 Config.SaveToInventory = true
 Config.InvincibleDuringEditor = true
+Config.OutfitCodeLength = 10
+Config.AutomaticFade = true
 
 -- ── Optional ox_lib integration (all disabled by default) ───────────────────
 Config.UseOxTarget  = false  -- Use ox_target zones at shop locations

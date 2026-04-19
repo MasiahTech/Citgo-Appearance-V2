@@ -120,7 +120,7 @@ end
 local function pushOutfitsToNUI()
     if not isOpen then return end
     local gender = currentGender
-    lib.callback('illenium-appearance:server:getOutfits', false, function(outfits)
+    lib.callback('citgo_appearance:server:getOutfits', false, function(outfits)
         if not isOpen then return end
         -- Filter outfits by current gender (illenium stores model hash)
         local maleHash   = GetHashKey('mp_m_freemode_01')
@@ -148,7 +148,7 @@ local function pushJobOutfitsToNUI()
         return
     end
     local gender = currentGender == 'male' and 'Male' or 'Female'
-    lib.callback('illenium-appearance:server:getManagementOutfits', false, function(outfits)
+    lib.callback('citgo_appearance:server:getManagementOutfits', false, function(outfits)
         if not isOpen then return end
         SendNUIMessage({
             type       = 'jobOutfits',
@@ -199,7 +199,7 @@ local function openEditor(shopType, editorMode)
     if isOpen then return end
     local ped = PlayerPedId()
 
-    originalAppearance = exports['illenium-appearance']:getPedAppearance(ped)
+    originalAppearance = AppearanceLib.getPedAppearance(ped)
     local slots  = buildSlots(ped, originalAppearance)
     local gender = IsPedMale(ped) and 'male' or 'female'
     currentGender = gender
@@ -372,7 +372,7 @@ end)
 RegisterNUICallback('getTattooData', function(_, cb)
     local ped    = PlayerPedId()
     local isMale = currentGender == 'male'
-    local appearance = exports['illenium-appearance']:getPedAppearance(ped) or {}
+    local appearance = AppearanceLib.getPedAppearance(ped) or {}
     local currentTattoos = appearance.tattoos or {}
 
     local zones = {}
@@ -468,8 +468,8 @@ RegisterNUICallback('confirm', function(data, cb)
         TriggerServerEvent('citgo_appearance:chargePlayer', activeShopType, tattooZoneCount)
     end
 
-    local finalAppearance = exports['illenium-appearance']:getPedAppearance(PlayerPedId())
-    TriggerServerEvent('illenium-appearance:server:saveAppearance', finalAppearance)
+    local finalAppearance = AppearanceLib.getPedAppearance(PlayerPedId())
+    TriggerServerEvent('citgo_appearance:server:saveAppearance', finalAppearance)
 
     if Config.SaveToInventory and GetResourceState('core_inventory') == 'started' then
         exports['core_inventory']:addClothingItemFromPedSkinInClothHolder(PlayerPedId(), false, true, true)
@@ -481,7 +481,7 @@ end)
 
 RegisterNUICallback('cancel', function(_, cb)
     if originalAppearance then
-        exports['illenium-appearance']:setPedAppearance(PlayerPedId(), originalAppearance)
+        AppearanceLib.setPedAppearance(PlayerPedId(), originalAppearance)
     end
     closeEditor()
     cb('ok')
@@ -504,7 +504,7 @@ RegisterNUICallback('changePedModel', function(data, cb)
     SetPedDefaultComponentVariation(ped)
     SetPedHeadBlendData(ped, 0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, false)
 
-    local appearance = exports['illenium-appearance']:getPedAppearance(ped)
+    local appearance = AppearanceLib.getPedAppearance(ped)
     local gender     = (data.model == 'mp_f_freemode_01') and 'female' or 'male'
     currentGender    = gender
     local slots      = buildSlots(ped, appearance)
@@ -554,20 +554,20 @@ RegisterNUICallback('applyOutfit', function(data, cb)
 end)
 
 RegisterNUICallback('saveOutfit', function(data, cb)
-    TriggerServerEvent('illenium-appearance:server:saveOutfit',
+    TriggerServerEvent('citgo_appearance:server:saveOutfit',
         data.name, GetEntityModel(PlayerPedId()), toCompArray(data.components), toPropArray(data.props))
     Citizen.SetTimeout(700, pushOutfitsToNUI)
     cb('ok')
 end)
 
 RegisterNUICallback('deleteOutfit', function(data, cb)
-    TriggerServerEvent('illenium-appearance:server:deleteOutfit', data.id)
+    TriggerServerEvent('citgo_appearance:server:deleteOutfit', data.id)
     Citizen.SetTimeout(500, pushOutfitsToNUI)
     cb('ok')
 end)
 
 RegisterNUICallback('generateOutfitCode', function(data, cb)
-    lib.callback('illenium-appearance:server:generateOutfitCode', false, function(code)
+    lib.callback('citgo_appearance:server:generateOutfitCode', false, function(code)
         if not isOpen then return end
         if code then
             SendNUIMessage({ type = 'outfitCode', code = code })
@@ -579,11 +579,11 @@ RegisterNUICallback('generateOutfitCode', function(data, cb)
 end)
 
 RegisterNUICallback('importOutfitCode', function(data, cb)
-    lib.callback('illenium-appearance:server:importOutfitCode', false, function(success)
+    lib.callback('citgo_appearance:server:importOutfitCode', false, function(success)
         if not isOpen then return end
         if success then
             Citizen.SetTimeout(400, function()
-                lib.callback('illenium-appearance:server:getOutfits', false, function(outfits)
+                lib.callback('citgo_appearance:server:getOutfits', false, function(outfits)
                     if not isOpen then return end
                     local converted = convertOutfits(outfits)
                     SendNUIMessage({ type = 'outfits', outfits = converted })
@@ -622,7 +622,7 @@ RegisterNUICallback('saveJobOutfit', function(data, cb)
         Components = toCompArray(data.components),
         Props      = toPropArray(data.props),
     }
-    TriggerServerEvent('illenium-appearance:server:saveManagementOutfit', outfitData)
+    TriggerServerEvent('citgo_appearance:server:saveManagementOutfit', outfitData)
     Citizen.SetTimeout(700, pushJobOutfitsToNUI)
     cb('ok')
 end)
@@ -633,7 +633,7 @@ RegisterNUICallback('deleteJobOutfit', function(data, cb)
         cb('not_boss')
         return
     end
-    TriggerServerEvent('illenium-appearance:server:deleteManagementOutfit', data.id)
+    TriggerServerEvent('citgo_appearance:server:deleteManagementOutfit', data.id)
     Citizen.SetTimeout(500, pushJobOutfitsToNUI)
     cb('ok')
 end)

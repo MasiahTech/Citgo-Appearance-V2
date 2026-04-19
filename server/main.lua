@@ -1,6 +1,5 @@
 -- ── citgo_AppearanceV2 — Server ──────────────────────────────────────────────
--- Outfit saving/loading/codes handled by illenium-appearance (SQL).
--- This file handles: shop charges, starter outfit admin management.
+-- Self-contained: appearance persistence, outfits, codes, shop charges, starter outfits.
 
 local QBCore = exports['qb-core']:GetCoreObject()
 
@@ -107,3 +106,187 @@ CreateThread(function()
         end
     end
 end)
+
+-- ── Appearance persistence & outfit management ──────────────────────────────
+
+local outfitCache = {}
+
+local function getOutfitsForPlayer(citizenid)
+    outfitCache[citizenid] = {}
+    local result = Database.PlayerOutfits.GetAllByCitizenID(citizenid)
+    for i = 1, #result do
+        outfitCache[citizenid][#outfitCache[citizenid] + 1] = {
+            id = result[i].id,
+            name = result[i].outfitname,
+            model = result[i].model,
+            components = json.decode(result[i].components),
+            props = json.decode(result[i].props)
+        }
+    end
+end
+
+local function GenerateUniqueCode()
+    local code, exists
+    repeat
+        code = GenerateNanoID(Config.OutfitCodeLength or 10)
+        exists = Database.PlayerOutfitCodes.GetByCode(code)
+    until not exists
+    return code
+end
+
+-- Callback handlers
+
+local function handleGenerateOutfitCode(_, outfitID)
+    local existingOutfitCode = Database.PlayerOutfitCodes.GetByOutfitID(outfitID)
+    if not existingOutfitCode then
+        local code = GenerateUniqueCode()
+        local id = Database.PlayerOutfitCodes.Add(outfitID, code)
+        if not id then
+            print("Something went wrong while generating outfit code")
+            return
+        end
+        return code
+    end
+    return existingOutfitCode.code
+end
+
+local function handleImportOutfitCode(src, outfitName, outfitCode)
+    local citizenID = Framework.GetPlayerID(src)
+    local existingOutfitCode = Database.PlayerOutfitCodes.GetByCode(outfitCode)
+    if not existingOutfitCode then return nil end
+
+    local playerOutfit = Database.PlayerOutfits.GetByID(existingOutfitCode.outfitid)
+    if not playerOutfit then return end
+
+    if playerOutfit.citizenid == citizenID then return end
+    if Database.PlayerOutfits.GetByOutfit(outfitName, citizenID) then return end
+
+    local id = Database.PlayerOutfits.Add(citizenID, outfitName, playerOutfit.model, playerOutfit.components, playerOutfit.props)
+    if not id then
+        print("Something went wrong while importing the outfit")
+        return
+    end
+
+    outfitCache[citizenID][#outfitCache[citizenID] + 1] = {
+        id = id,
+        name = outfitName,
+        model = playerOutfit.model,
+        components = json.decode(playerOutfit.components),
+        props = json.decode(playerOutfit.props)
+    }
+
+    return true
+end
+
+local function handleGetOutfits(src)
+    local citizenID = Framework.GetPlayerID(src)
+    if outfitCache[citizenID] == nil then
+        getOutfitsForPlayer(citizenID)
+    end
+    return outfitCache[citizenID]
+end
+
+local function handleGetManagementOutfits(src, mType, gender)
+    local job = Framework.GetJob(src)
+    if mType == "Gang" then
+        job = Framework.GetGang(src)
+    end
+
+    local grade = tonumber(job.grade.level)
+    local managementOutfits = {}
+    local result = Database.ManagementOutfits.GetAllByJob(mType, job.name, gender)
+
+    for i = 1, #result do
+        if grade >= result[i].minrank then
+            managementOutfits[#managementOutfits + 1] = {
+                id = result[i].id,
+                name = result[i].name,
+                model = result[i].model,
+                gender = result[i].gender,
+                components = json.decode(result[i].components),
+                props = json.decode(result[i].props)
+            }
+        end
+    end
+    return managementOutfits
+end
+
+-- Register under both new and old (illenium-appearance) names for backward compatibility
+lib.callback.register("citgo_appearance:server:generateOutfitCode", handleGenerateOutfitCode)
+lib.callback.register("illenium-appearance:server:generateOutfitCode", handleGenerateOutfitCode)
+
+lib.callback.register("citgo_appearance:server:importOutfitCode", handleImportOutfitCode)
+lib.callback.register("illenium-appearance:server:importOutfitCode", handleImportOutfitCode)
+
+lib.callback.register("citgo_appearance:server:getOutfits", handleGetOutfits)
+lib.callback.register("illenium-appearance:server:getOutfits", handleGetOutfits)
+
+lib.callback.register("citgo_appearance:server:getManagementOutfits", handleGetManagementOutfits)
+lib.callback.register("illenium-appearance:server:getManagementOutfits", handleGetManagementOutfits)
+
+-- Event handlers
+
+local function handleSaveAppearance(appearance)
+    local src = source
+    local citizenID = Framework.GetPlayerID(src)
+    if appearance ~= nil then
+        Framework.SaveAppearance(appearance, citizenID)
+    end
+end
+
+local function handleSaveOutfit(name, model, components, props)
+    local src = source
+    local citizenID = Framework.GetPlayerID(src)
+    if outfitCache[citizenID] == nil then
+        getOutfitsForPlayer(citizenID)
+    end
+    if model and components and props then
+        local id = Database.PlayerOutfits.Add(citizenID, name, model, json.encode(components), json.encode(props))
+        if not id then return end
+        outfitCache[citizenID][#outfitCache[citizenID] + 1] = {
+            id = id,
+            name = name,
+            model = model,
+            components = components,
+            props = props
+        }
+    end
+end
+
+local function handleDeleteOutfit(id)
+    local src = source
+    local citizenID = Framework.GetPlayerID(src)
+    Database.PlayerOutfitCodes.DeleteByOutfitID(id)
+    Database.PlayerOutfits.DeleteByID(id)
+
+    for k, v in ipairs(outfitCache[citizenID]) do
+        if v.id == id then
+            table.remove(outfitCache[citizenID], k)
+            break
+        end
+    end
+end
+
+local function handleSaveManagementOutfit(outfitData)
+    Database.ManagementOutfits.Add(outfitData)
+end
+
+local function handleDeleteManagementOutfit(id)
+    Database.ManagementOutfits.DeleteByID(id)
+end
+
+-- Register under both new and old names
+RegisterNetEvent("citgo_appearance:server:saveAppearance", handleSaveAppearance)
+RegisterNetEvent("illenium-appearance:server:saveAppearance", handleSaveAppearance)
+
+RegisterNetEvent("citgo_appearance:server:saveOutfit", handleSaveOutfit)
+RegisterNetEvent("illenium-appearance:server:saveOutfit", handleSaveOutfit)
+
+RegisterNetEvent("citgo_appearance:server:deleteOutfit", handleDeleteOutfit)
+RegisterNetEvent("illenium-appearance:server:deleteOutfit", handleDeleteOutfit)
+
+RegisterNetEvent("citgo_appearance:server:saveManagementOutfit", handleSaveManagementOutfit)
+RegisterNetEvent("illenium-appearance:server:saveManagementOutfit", handleSaveManagementOutfit)
+
+RegisterNetEvent("citgo_appearance:server:deleteManagementOutfit", handleDeleteManagementOutfit)
+RegisterNetEvent("illenium-appearance:server:deleteManagementOutfit", handleDeleteManagementOutfit)
