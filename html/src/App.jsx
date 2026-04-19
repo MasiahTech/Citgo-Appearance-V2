@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { AppearanceEditor } from './components/AppearanceEditor'
-import { fetchNUI } from './utils/fetchNUI'
+import { fetchNUI, setResourceName } from './utils/fetchNUI'
 
 // ── NUI bridge ───────────────────────────────────────────────────────────────
 export { fetchNUI }
@@ -59,6 +59,7 @@ export default function App() {
 
       // ── Initial open ──
       if (d.type === 'open') {
+        if (d.resourceName) setResourceName(d.resourceName)
         setGender(d.gender || 'male')
         setSlots(d.slots || { components: [], props: [] })
         setShopType(d.shopType || null)

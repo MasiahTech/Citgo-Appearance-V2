@@ -248,11 +248,14 @@ local function openEditor(shopType, editorMode)
     if Config.InvincibleDuringEditor then
         SetEntityInvincible(ped, true)
     end
-    exports['ZSX_UIV2']:HideInterface(true)
+    if GetResourceState('ZSX_UIV2') ~= 'missing' then
+        pcall(exports['ZSX_UIV2'].HideInterface, exports['ZSX_UIV2'], true)
+    end
     createCam()
     SetNuiFocus(true, true)
     SendNUIMessage({
         type           = 'open',
+        resourceName   = GetCurrentResourceName(),
         gender         = gender,
         appearance     = originalAppearance,
         slots          = slots,
@@ -467,8 +470,10 @@ local function closeEditor()
     activeShopType = nil
     activeMode     = nil
     destroyCam()
-    exports['ZSX_UIV2']:HideInterface(false)
     SetNuiFocus(false, false)
+    if GetResourceState('ZSX_UIV2') ~= 'missing' then
+        pcall(exports['ZSX_UIV2'].HideInterface, exports['ZSX_UIV2'], false)
+    end
 end
 
 RegisterNUICallback('confirm', function(data, cb)
