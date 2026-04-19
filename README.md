@@ -222,11 +222,13 @@ All settings are in `config.lua`.
 
 ```lua
 Config.Command = 'appearance'        -- Chat command to open the full editor (all categories, free)
-Config.SaveToInventory = true         -- Save appearance data to player inventory
+Config.SaveToInventory = true         -- Save appearance data to player inventory (requires core_inventory)
 Config.InvincibleDuringEditor = true  -- Prevent player damage while editing
 Config.OutfitCodeLength = 10          -- Length of generated outfit share codes
 Config.AutomaticFade = true           -- Apply hair fade decorations automatically
 ```
+
+> **Note:** `Config.SaveToInventory` only works if you have **core_inventory** installed. If you do not use core_inventory, set this to `false`.
 
 ### Interaction Mode
 
@@ -479,8 +481,23 @@ This tells FiveM that citgo_AppearanceV2 **is** illenium-appearance. Any other r
 | Command | Access | Description |
 |---|---|---|
 | `/appearance` | Everyone | Opens the full appearance editor (all categories, free) |
-| `/starteroutfits` | Admin | Opens the starter outfit manager for character creation presets |
+| `/starteroutfits` | Admin (ACE restricted) | Opens the starter outfit manager for character creation presets |
 | `/joboutfits` | Everyone | Opens the job outfit editor |
+
+### Setting Up Admin Access for /starteroutfits
+
+The `/starteroutfits` command requires the `command` ACE permission. Add the following to your `server.cfg` to grant access:
+
+```cfg
+# Grant to a specific player by their license
+add_principal identifier.license:xxxxxxxxxxxxxxxxxxxx group.admin
+add_ace group.admin command allow
+
+# Or grant to all admins in your QBCore admin group
+add_ace group.admin command allow
+```
+
+Only players with this permission can create, edit, or delete starter outfits. Regular players will not see or be able to use this command.
 
 ---
 
