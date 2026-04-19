@@ -1,7 +1,7 @@
 local PED_TATTOOS = {}
 
 local function tofloat(num)
-    return num + 0.0
+    return (num or 0) + 0.0
 end
 
 local function round(number, decimalPlaces)
@@ -165,14 +165,17 @@ end
 
 local function setPedHeadBlend(ped, headBlend)
     if headBlend and isPedFreemodeModel(ped) then
-        SetPedHeadBlendData(ped, headBlend.shapeFirst, headBlend.shapeSecond, headBlend.shapeThird, headBlend.skinFirst, headBlend.skinSecond, headBlend.skinThird, tofloat(headBlend.shapeMix or 0), tofloat(headBlend.skinMix or 0), tofloat(headBlend.thirdMix or 0), false)
+        SetPedHeadBlendData(ped,
+            headBlend.shapeFirst or 0, headBlend.shapeSecond or 0, headBlend.shapeThird or 0,
+            headBlend.skinFirst or 0, headBlend.skinSecond or 0, headBlend.skinThird or 0,
+            tofloat(headBlend.shapeMix), tofloat(headBlend.skinMix), tofloat(headBlend.thirdMix), false)
     end
 end
 
 local function setPedFaceFeatures(ped, faceFeatures)
     if faceFeatures then
         for k, v in pairs(constants.FACE_FEATURES) do
-            SetPedFaceFeature(ped, k-1, tofloat(faceFeatures[v]))
+            SetPedFaceFeature(ped, k-1, tofloat(faceFeatures[v] or 0))
         end
     end
 end
@@ -181,13 +184,15 @@ local function setPedHeadOverlays(ped, headOverlays)
     if headOverlays then
         for k, v in pairs(constants.HEAD_OVERLAYS) do
             local headOverlay = headOverlays[v]
-            SetPedHeadOverlay(ped, k-1, headOverlay.style, tofloat(headOverlay.opacity))
-            if headOverlay.color then
-                local colorType = 1
-                if v == "blush" or v == "lipstick" or v == "makeUp" then
-                    colorType = 2
+            if headOverlay then
+                SetPedHeadOverlay(ped, k-1, headOverlay.style or 0, tofloat(headOverlay.opacity))
+                if headOverlay.color then
+                    local colorType = 1
+                    if v == "blush" or v == "lipstick" or v == "makeUp" then
+                        colorType = 2
+                    end
+                    SetPedHeadOverlayColor(ped, k-1, colorType, headOverlay.color, headOverlay.secondColor or 0)
                 end
-                SetPedHeadOverlayColor(ped, k-1, colorType, headOverlay.color, headOverlay.secondColor)
             end
         end
     end
@@ -222,8 +227,8 @@ end
 
 local function setPedHair(ped, hair, tattoos)
     if hair then
-        SetPedComponentVariation(ped, 2, hair.style, hair.texture, 0)
-        SetPedHairColor(ped, hair.color, hair.highlight)
+        SetPedComponentVariation(ped, 2, hair.style or 0, hair.texture or 0, 0)
+        SetPedHairColor(ped, hair.color or 0, hair.highlight or 0)
         if isPedFreemodeModel(ped) then
             setTattoos(ped, tattoos or PED_TATTOOS, hair.style)
         end
