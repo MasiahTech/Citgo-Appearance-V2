@@ -122,12 +122,11 @@ local function pushOutfitsToNUI()
     local gender = currentGender
     lib.callback('citgo_appearance:server:getOutfits', false, function(outfits)
         if not isOpen then return end
-        -- Filter outfits by current gender (illenium stores model hash)
         local maleHash   = GetHashKey('mp_m_freemode_01')
-        local femaleHash = GetHashKey('mp_f_freemode_01')
         local filtered = {}
         for _, o in ipairs(outfits or {}) do
-            local isMaleOutfit = (o.model == maleHash)
+            local model = tonumber(o.model) or o.model
+            local isMaleOutfit = (model == maleHash)
             if (gender == 'male' and isMaleOutfit) or (gender == 'female' and not isMaleOutfit) then
                 filtered[#filtered + 1] = o
             end
