@@ -205,7 +205,8 @@ local function openEditor(shopType, editorMode)
 
     originalAppearance = AppearanceLib.getPedAppearance(ped)
     local slots  = buildSlots(ped, originalAppearance)
-    local gender = IsPedMale(ped) and 'male' or 'female'
+    local pedModel = GetEntityModel(ped)
+    local gender = (pedModel == `mp_f_freemode_01`) and 'female' or 'male'
     currentGender = gender
 
     camAngleH  = GetEntityHeading(ped)
@@ -580,7 +581,7 @@ RegisterNUICallback('applyOutfit', function(data, cb)
 end)
 
 RegisterNUICallback('saveOutfit', function(data, cb)
-    local model = IsPedMale(PlayerPedId()) and 'mp_m_freemode_01' or 'mp_f_freemode_01'
+    local model = (GetEntityModel(PlayerPedId()) == `mp_f_freemode_01`) and 'mp_f_freemode_01' or 'mp_m_freemode_01'
     TriggerServerEvent('citgo_appearance:server:saveOutfit',
         data.name, model, toCompArray(data.components), toPropArray(data.props))
     Citizen.SetTimeout(700, pushOutfitsToNUI)
@@ -645,7 +646,7 @@ RegisterNUICallback('saveJobOutfit', function(data, cb)
         MinRank    = tonumber(data.minGrade) or 0,
         Name       = data.name,
         Gender     = currentGender == 'male' and 'Male' or 'Female',
-        Model      = IsPedMale(ped) and 'mp_m_freemode_01' or 'mp_f_freemode_01',
+        Model      = (GetEntityModel(ped) == `mp_f_freemode_01`) and 'mp_f_freemode_01' or 'mp_m_freemode_01',
         Components = toCompArray(data.components),
         Props      = toPropArray(data.props),
     }
