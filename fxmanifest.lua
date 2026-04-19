@@ -38,8 +38,6 @@ server_scripts {
     'server/main.lua',
 }
 
-provide 'illenium-appearance'
-
 dependencies {
     'qb-core',
     'oxmysql',

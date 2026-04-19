@@ -328,7 +328,12 @@ local function setPlayerAppearance(appearance)
     end
 end
 
--- Backward-compatible exports (matches illenium-appearance export names)
+-- Stubs for pedscale (escrow-encrypted in original, not needed)
+local function getPedScale() return nil end
+local function setPedScale() end
+local function previewScale() end
+
+-- citgo_AppearanceV2 exports
 exports("getPedModel", getPedModel)
 exports("getPedComponents", getPedComponents)
 exports("getPedProps", getPedProps)
@@ -337,6 +342,8 @@ exports("getPedFaceFeatures", getPedFaceFeatures)
 exports("getPedHeadOverlays", getPedHeadOverlays)
 exports("getPedHair", getPedHair)
 exports("getPedAppearance", getPedAppearance)
+exports("previewScale", previewScale)
+exports("setPedScale", setPedScale)
 exports("setPlayerModel", setPlayerModel)
 exports("setPedHeadBlend", setPedHeadBlend)
 exports("setPedFaceFeatures", setPedFaceFeatures)
@@ -350,6 +357,41 @@ exports("setPedProps", setPedProps)
 exports("setPlayerAppearance", setPlayerAppearance)
 exports("setPedAppearance", setPedAppearance)
 exports("setPedTattoos", setPedTattoos)
+
+-- illenium-appearance compatibility layer
+-- Intercepts exports['illenium-appearance']:exportName() calls
+-- so other resources don't need to update their code
+local illeniumExports = {
+    getPedModel = getPedModel,
+    getPedComponents = getPedComponents,
+    getPedProps = getPedProps,
+    getPedHeadBlend = getPedHeadBlend,
+    getPedFaceFeatures = getPedFaceFeatures,
+    getPedHeadOverlays = getPedHeadOverlays,
+    getPedHair = getPedHair,
+    getPedAppearance = getPedAppearance,
+    previewScale = previewScale,
+    setPedScale = setPedScale,
+    setPlayerModel = setPlayerModel,
+    setPedHeadBlend = setPedHeadBlend,
+    setPedFaceFeatures = setPedFaceFeatures,
+    setPedHeadOverlays = setPedHeadOverlays,
+    setPedHair = setPedHair,
+    setPedEyeColor = setPedEyeColor,
+    setPedComponent = setPedComponent,
+    setPedComponents = setPedComponents,
+    setPedProp = setPedProp,
+    setPedProps = setPedProps,
+    setPlayerAppearance = setPlayerAppearance,
+    setPedAppearance = setPedAppearance,
+    setPedTattoos = setPedTattoos,
+}
+
+for exportName, handler in pairs(illeniumExports) do
+    AddEventHandler(('__cfx_export_%s_%s'):format('illenium-appearance', exportName), function(setCB)
+        setCB(handler)
+    end)
+end
 
 AppearanceLib = {
     getPedModel = getPedModel,
