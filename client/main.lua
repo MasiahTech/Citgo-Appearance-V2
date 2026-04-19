@@ -572,8 +572,9 @@ RegisterNUICallback('applyOutfit', function(data, cb)
 end)
 
 RegisterNUICallback('saveOutfit', function(data, cb)
+    local model = IsPedMale(PlayerPedId()) and 'mp_m_freemode_01' or 'mp_f_freemode_01'
     TriggerServerEvent('citgo_appearance:server:saveOutfit',
-        data.name, GetEntityModel(PlayerPedId()), toCompArray(data.components), toPropArray(data.props))
+        data.name, model, toCompArray(data.components), toPropArray(data.props))
     Citizen.SetTimeout(700, pushOutfitsToNUI)
     cb('ok')
 end)
@@ -636,7 +637,7 @@ RegisterNUICallback('saveJobOutfit', function(data, cb)
         MinRank    = tonumber(data.minGrade) or 0,
         Name       = data.name,
         Gender     = currentGender == 'male' and 'Male' or 'Female',
-        Model      = GetEntityModel(ped),
+        Model      = IsPedMale(ped) and 'mp_m_freemode_01' or 'mp_f_freemode_01',
         Components = toCompArray(data.components),
         Props      = toPropArray(data.props),
     }
